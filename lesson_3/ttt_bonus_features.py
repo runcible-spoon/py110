@@ -4,6 +4,7 @@ import random
 INITIAL_MARKER = ' '
 HUMAN_MARKER = 'X'
 COMPUTER_MARKER = 'O'
+TO_WIN_MATCH = 5
 
 def prompt(message):
     print(f"==> {message}")
@@ -60,7 +61,7 @@ def player_chooses_square(board):
 def board_full(board):
     return len(empty_squares(board)) == 0
 
-def detect_winner(board):
+def detect_game_winner(board):
     winning_lines = [
         [1, 2, 3], [4, 5, 6], [7, 8, 9],
         [1, 4, 7], [2, 5, 8], [3, 6, 9],
@@ -80,14 +81,17 @@ def detect_winner(board):
 
     return None
 
-def someone_won(board):
-    return bool(detect_winner(board))
+def someone_won_game(board):
+    return bool(detect_game_winner(board))
 
 def computer_chooses_square(board):
     if len(empty_squares(board)) == 0:
         return
     square = random.choice(empty_squares(board))
     board[square] = COMPUTER_MARKER
+
+def someone_won_match(score):
+    return bool(score == TO_WIN_MATCH)
 
 def play_tic_tac_toe():
     while True:
@@ -97,26 +101,26 @@ def play_tic_tac_toe():
             display_board(board)
 
             player_chooses_square(board)
-
             if someone_won(board) or board_full(board):
                 break
-
+            
             computer_chooses_square(board)
             if someone_won(board) or board_full(board):
                 break
 
+        display_board(board)
+
         if someone_won(board):
-            prompt(f"{detect_winner(board)} won!")
+            prompt(f'{detect_winner(board)} won!')
         else:
             prompt("It's a tie!")
 
         prompt("Play again? (y or n)")
-        answer = input().lower()[0]
+        answer = input().lower()
 
-        if answer != 'y':
+        if answer[0] != 'y':
             break
 
-        prompt('Thanks for playing Tic Tac Toe!')
+    prompt('Thanks for playing Tic Tac Toe!')
 
-# Call the main game function
 play_tic_tac_toe()
