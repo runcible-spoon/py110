@@ -92,35 +92,3 @@ def computer_chooses_square(board):
 
 def someone_won_match(score):
     return bool(score == TO_WIN_MATCH)
-
-def play_tic_tac_toe():
-    while True:
-        board = initialize_board()
-
-        while True:
-            display_board(board)
-
-            player_chooses_square(board)
-            if someone_won(board) or board_full(board):
-                break
-            
-            computer_chooses_square(board)
-            if someone_won(board) or board_full(board):
-                break
-
-        display_board(board)
-
-        if someone_won(board):
-            prompt(f'{detect_winner(board)} won!')
-        else:
-            prompt("It's a tie!")
-
-        prompt("Play again? (y or n)")
-        answer = input().lower()
-
-        if answer[0] != 'y':
-            break
-
-    prompt('Thanks for playing Tic Tac Toe!')
-
-play_tic_tac_toe()
