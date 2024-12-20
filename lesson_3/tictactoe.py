@@ -77,9 +77,11 @@ def detect_winner(board):
     return None
 
 def play_tic_tac_toe():
+    # game loop
     while True:
         board = initialize_board()
 
+        # turn loop
         while True:
             display_board(board)
 
