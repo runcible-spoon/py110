@@ -2,6 +2,8 @@ import os
 import random
 import pdb
 
+TURN_ORDER = 'Choice' # Set to 'Player' for player turn first, 'Computer' for computer turn first, or 'Choose' for player's choice. 
+
 INITIAL_MARKER = ' '
 HUMAN_MARKER = 'X'
 COMPUTER_MARKER = 'O'
@@ -10,10 +12,30 @@ GAME_POINT = 1
 TO_WIN_MATCH = 5
 
 WINNING_LINES = [
-        [1, 2, 3], [4, 5, 6], [7, 8, 9],
-        [1, 4, 7], [2, 5, 8], [3, 6, 9],
-        [1, 5, 9], [3, 5, 7]
+        [1, 2, 3], [4, 5, 6], [7, 8, 9], # horizontals
+        [1, 4, 7], [2, 5, 8], [3, 6, 9], # verticals
+        [1, 5, 9], [3, 5, 7]             # diagonals
     ]
+
+# SET TURN ORDER
+
+def set_turn_order(choice):
+    turn_order = TURN_ORDER
+
+    if turn_order == 'Choice':
+        prompt("Who goes first: (P)layer or (C)omputer")
+        choice = input().lower()
+        while choice not in ('p', 'c'):
+            prompt("Invalid input. Enter P for player, C for computer.")
+            choice = input().lower()
+
+        match choice:
+            case 'p':
+                turn_order = 'Player'
+            case 'c':
+                turn_order = 'Computer'
+
+    return turn_order
 
 # DISPLAY BOARD
 
@@ -62,12 +84,59 @@ def join_or(sequence, delimiter=', ', conjunction='or'):
     return ''.join([ str(element) for sublist in zipped_list
                                     for element in sublist ])[:-2]
 
-# TURN ACTIONS
+# BEHAVIOR
+
+def choose_square(board, current_player):
+    match current_player:
+        case 'Player':
+            while True:
+                valid_choices = [str(num) for num in empty_squares(board)]
+                prompt(f"Choose a square ({join_or(valid_choices)})")
+                square = input().strip()
+                if square in valid_choices:
+                    break
+
+                prompt("Sorry, that's not a valid choice.")
+
+            board[int(square)] = HUMAN_MARKER
+        case 'Computer':
+                if len(empty_squares(board)) == 0:
+                    return
+                
+                square = None    
+
+                # offense
+                for line in WINNING_LINES:
+                    square = find_at_risk_square(line, board, COMPUTER_MARKER)
+                    if square:
+                        break
+
+                # defense
+                if not square:
+                    for line in WINNING_LINES:
+                        square = find_at_risk_square(line, board, HUMAN_MARKER)
+                        if square:
+                            break
+                
+                if not square:
+                    if 5 in empty_squares(board):
+                        square = 5
+
+                # random
+                if not square:
+                    square = random.choice(empty_squares(board))        
+                
+                board[square] = COMPUTER_MARKER
+
+def alternate_player(current_player):
+    if current_player == 'Player':
+        return 'Computer'
+    return 'Player'
 
 def player_chooses_square(board):
     while True:
         valid_choices = [str(num) for num in empty_squares(board)]
-        prompt(f"Choose a square ({join_or(valid_choices, ', ', 'or')})")
+        prompt(f"Choose a square ({join_or(valid_choices)})")
         square = input().strip()
         if square in valid_choices:
             break
@@ -76,10 +145,45 @@ def player_chooses_square(board):
 
     board[int(square)] = HUMAN_MARKER
 
+# COMPUTER BEHAVIOR
+
+def find_at_risk_square(line, board, marker):
+    markers_in_line = [board[square] for square in line]
+
+    if markers_in_line.count(marker) == 2:
+        for square in line:
+            if board[square] == INITIAL_MARKER:
+                return square
+
+    return None
+
 def computer_chooses_square(board):
     if len(empty_squares(board)) == 0:
-        return None
-    square = random.choice(empty_squares(board))
+        return
+    
+    square = None    
+
+    # offense
+    for line in WINNING_LINES:
+        square = find_at_risk_square(line, board, COMPUTER_MARKER)
+        if square:
+            break
+
+    # defense
+    if not square:
+        for line in WINNING_LINES:
+            square = find_at_risk_square(line, board, HUMAN_MARKER)
+            if square:
+                break
+    
+    if not square:
+        if 5 in empty_squares(board):
+            square = 5
+
+    # random
+    if not square:
+        square = random.choice(empty_squares(board))        
+    
     board[square] = COMPUTER_MARKER
 
 # DETERMINE OUTCOME
@@ -135,12 +239,26 @@ def increment_score(board, player_score, computer_score):
             
     return player_score, computer_score
 
+def next_game():
+    prompt("Press any key to continue to the next game.")
+    next_game = input().lower()
+    while not next_game:
+        prompt("Press any key to continue to the next game.")
+        next_game = input().lower()
+
+    return next_game
+
 def display_match_outcome(player_score, computer_score):
     prompt(f"{detect_match_winner(player_score, computer_score)} won!")
 
 def play_again():
-    answer = input(prompt(f"Play again? y / n")).lower()
-    return answer[0] == 'y'
+    prompt("Play again? y / n")
+    answer = input().lower()
+    while answer not in ('y', 'n'):
+        prompt("Invalid input. Enter Y to play again or N to terminate program.")
+        answer = input().lower()
+
+    return answer      
 
 # MAIN
 
@@ -148,60 +266,50 @@ def play_tic_tac_toe():
 
     # PLAY AGAIN LOOP
     while True:
-   
+
+        first_player = set_turn_order(TURN_ORDER)
         player_score = 0
         computer_score = 0
-
         game_number = 1
 
         # MATCH LOOP
         while True:
-
-            if detect_match_winner(player_score, computer_score):
-                break
-
+            current_player = first_player
             board = initialize_board()
 
             # GAME LOOP
             while True:
-                display_game_outcome(board)
-                display_board(board, game_number, player_score, computer_score)
 
-                player_chooses_square(board)
+                display_board(board, game_number, player_score, computer_score)
+                choose_square(board, current_player)
+                
                 if someone_won_game(board) or board_full(board):
                     break
-            
-                computer_chooses_square(board)
-                if someone_won_game(board) or board_full(board):
-                    break
+                
+                current_player = alternate_player(current_player)
 
             player_score, computer_score = increment_score(board, player_score, computer_score)
 
             display_board(board, game_number, player_score, computer_score)
 
-            game_number += 1
+            display_game_outcome(board)
 
+            if detect_match_winner(player_score, computer_score):
+                break
+
+            while True:
+                if next_game():
+                    break
+
+            game_number += 1
 
         display_board(board, game_number, player_score, computer_score)
         display_match_outcome(player_score, computer_score)
 
-
-        if not play_again():
+        play_again_choice = play_again()
+        if play_again_choice == 'n':
             break
         
     prompt("Thanks for playing!")
 
 play_tic_tac_toe()
-
-
-
-
-        
-        
-
-
-
-
-
-
-                
