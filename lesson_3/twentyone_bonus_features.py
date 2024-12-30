@@ -36,7 +36,7 @@ def deal(deal_deck):
 # GENERAL DISPLAY
 
 def clear_screen():
-    os.system('clear')
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 def prompt(message):
     print(f"==> {message}")
@@ -138,17 +138,15 @@ def calculate_game_result(player_hand,
 
     'DEALER_WINS_GAME': {
         busted(player_total),
-        blackjack(dealer_hand, dealer_total)
-            and not blackjack(player_hand, player_total),
-        (dealer_total > player_total)
-            and not busted(dealer_total)},
+        blackjack(dealer_hand, dealer_total) and not
+            blackjack(player_hand, player_total),
+        (dealer_total > player_total) and not busted(dealer_total)},
 
     'PLAYER_WINS_GAME': {
         busted(dealer_total),
-        blackjack(player_hand, player_total)
-            and not blackjack(dealer_hand, dealer_total),
-        (player_total > dealer_total)
-            and not busted(player_total)}
+        blackjack(player_hand, player_total) and not
+            blackjack(dealer_hand, dealer_total),
+        (player_total > dealer_total) and not busted(player_total)}
     }
 
     if any(game_outcomes['DEALER_WINS_GAME']):
@@ -272,9 +270,9 @@ def play_twentyone():
                 short_pause()
 
                 result = calculate_game_result(player_hand,
-                                            player_total,
-                                            dealer_hand,
-                                            dealer_total)
+                                               player_total,
+                                               dealer_hand,
+                                               dealer_total)
                 display_game_result(result, player_total, dealer_total)
                 player_score, dealer_score = increment_score(result,
                                                             player_score,

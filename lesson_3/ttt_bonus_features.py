@@ -49,7 +49,7 @@ def prompt(message):
 
 
 def display_board(board, game_number, player_score, computer_score):
-    os.system('clear')
+    os.system('cls' if os.name == 'nt' else 'clear')
 
     prompt(f"You are {HUMAN_MARKER}. Computer is {COMPUTER_MARKER}.")
     prompt(f"Game number {game_number}. First to 5 points wins the match.")
