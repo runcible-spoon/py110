@@ -86,6 +86,30 @@ def join_or(sequence, delimiter=', ', conjunction='or'):
 
 # PLAY BEHAVIOR
 
+'''
+Minimax PEDAC
+
+Problem:
+- Apply the minimax algorithm to existing tic tac toe game such that computer is "unbeatable"
+- The minimax algorithm minimizes the maximum possible loss of a player attempting a positive score. 
+- Their opponent would be doing the same with a maximin algorithm, which maximizes the minimum possible gain of their opponent when attempting a negative score. 
+- To create the algorithm, we need a heuristic scoring mechanism to assign score values to possible moves. 
+- The minimax algorithm then determines the best possible move from among the options. 
+
+Examples:
+- https://www.codeproject.com/Articles/43622/Solve-Tic-Tac-Toe-with-the-MiniMax-algorithm
+
+Data structure/algorithm:
+- Heuristic algorithm:
+    -
+
+- Minimax algorithm:
+    - Assign player, computer negative, positive target scores
+    - 
+'''
+
+def minimax 
+
 def choose_square(board, current_player):
     match current_player:
         case 'Player':

@@ -1,8 +1,13 @@
 import os
 import random
-import pdb
 
-TURN_ORDER = 'Choice' # Set to 'Player' for player turn first, 'Computer' for computer turn first, or 'Choose' for player's choice. 
+TURN_ORDER = 'Choice'
+'''
+Set to:
+- 'Player' for player turn first,
+- 'Computer' for computer turn first, or
+- 'Choice' for player's choice.
+'''
 
 INITIAL_MARKER = ' '
 HUMAN_MARKER = 'X'
@@ -49,7 +54,7 @@ def display_board(board, game_number, player_score, computer_score):
     prompt(f"You are {HUMAN_MARKER}. Computer is {COMPUTER_MARKER}.")
     prompt(f"Game number {game_number}. First to 5 points wins the match.")
     prompt(f"Player score: {player_score} | Computer score: {computer_score}")
-    
+
     print('')
     print('     |     |')
     print(f"  {board[1]}  |  {board[2]}  |  {board[3]}")
@@ -78,37 +83,14 @@ def join_or(sequence, delimiter=', ', conjunction='or'):
             return str(sequence[0])
         case 2:
             return f"{sequence[0]} {conjunction} {sequence[1]}"
-        
-    zipped_list = list(zip(sequence, [delimiter for _ in range(len(sequence))]))
+
+    zipped_list = list(zip(sequence,
+                           [delimiter for _ in range(len(sequence))]))
     zipped_list.insert(-1, conjunction + ' ')
     return ''.join([ str(element) for sublist in zipped_list
                                     for element in sublist ])[:-2]
 
 # PLAY BEHAVIOR
-
-'''
-Minimax PEDAC
-
-Problem:
-- Apply the minimax algorithm to existing tic tac toe game such that computer is "unbeatable"
-- The minimax algorithm minimizes the maximum possible loss of a player attempting a positive score. 
-- Their opponent would be doing the same with a maximin algorithm, which maximizes the minimum possible gain of their opponent when attempting a negative score. 
-- To create the algorithm, we need a heuristic scoring mechanism to assign score values to possible moves. 
-- The minimax algorithm then determines the best possible move from among the options. 
-
-Examples:
-- 
-
-Data structure/algorithm:
-- Heuristic algorithm:
-    -
-
-- Minimax algorithm:
-    - Assign player, computer negative, positive target scores
-    - 
-'''
-
-def minimax 
 
 def choose_square(board, current_player):
     match current_player:
@@ -124,34 +106,34 @@ def choose_square(board, current_player):
 
             board[int(square)] = HUMAN_MARKER
         case 'Computer':
-                if len(empty_squares(board)) == 0:
-                    return
-                
-                square = None    
+            if len(empty_squares(board)) == 0:
+                return
 
-                # offensive strategy
+            square = None
+
+            # offensive strategy
+            for line in WINNING_LINES:
+                square = find_at_risk_square(line, board, COMPUTER_MARKER)
+                if square:
+                    break
+
+            # defensive strategy
+            if not square:
                 for line in WINNING_LINES:
-                    square = find_at_risk_square(line, board, COMPUTER_MARKER)
+                    square = find_at_risk_square(line, board, HUMAN_MARKER)
                     if square:
                         break
 
-                # defensive strategy
-                if not square:
-                    for line in WINNING_LINES:
-                        square = find_at_risk_square(line, board, HUMAN_MARKER)
-                        if square:
-                            break
-                
-                # best square position
-                if not square:
-                    if 5 in empty_squares(board):
-                        square = 5
+            # best position otherwise
+            if not square:
+                if 5 in empty_squares(board):
+                    square = 5
 
-                # random
-                if not square:
-                    square = random.choice(empty_squares(board))        
-                
-                board[square] = COMPUTER_MARKER
+            # random
+            if not square:
+                square = random.choice(empty_squares(board))
+
+            board[square] = COMPUTER_MARKER
 
 def alternate_player(current_player):
     if current_player == 'Player':
@@ -177,7 +159,7 @@ def detect_game_winner(board):
                 and board[sq2] == HUMAN_MARKER
                 and board[sq3] == HUMAN_MARKER):
             return 'Player'
-        elif (      board[sq1] == COMPUTER_MARKER
+        if (      board[sq1] == COMPUTER_MARKER
                 and board[sq2] == COMPUTER_MARKER
                 and board[sq3] == COMPUTER_MARKER):
             return 'Computer'
@@ -195,9 +177,9 @@ def board_full(board):
 def detect_match_winner(player_score, computer_score):
     if player_score == TO_WIN_MATCH:
         return 'Player'
-    elif computer_score == TO_WIN_MATCH:
+    if computer_score == TO_WIN_MATCH:
         return 'Computer'
-    
+
     return None
 
 def someone_won_match(player_score, computer_score):
@@ -220,29 +202,31 @@ def increment_score(board, player_score, computer_score):
             case 'Computer':
                 print("COMPUTER SCORE INCREMENTED")
                 return player_score, computer_score + GAME_POINT
-            
+
     return player_score, computer_score
 
-def next_game():
+def advance_to_next_game():
     prompt("Press any key to continue to the next game.")
-    next_game = input().lower()
-    while not next_game:
+    next_game_input = input().lower()
+    while not next_game_input:
         prompt("Press any key to continue to the next game.")
-        next_game = input().lower()
+        next_game_input = input().lower()
 
-    return next_game
+    return next_game_input
 
 def display_match_outcome(player_score, computer_score):
-    prompt(f"{detect_match_winner(player_score, computer_score)} won!")
+    winner = detect_match_winner(player_score, computer_score)
+    prompt(f"{winner} won!")
 
 def play_again():
     prompt("Play again? y / n")
     answer = input().lower()
     while answer not in ('y', 'n'):
-        prompt("Invalid input. Enter Y to play again or N to terminate program.")
+        prompt('''Invalid input. Enter Y to play again
+               or N to terminate program.''')
         answer = input().lower()
- 
-    return answer      
+
+    return answer
 
 # MAIN
 
@@ -266,13 +250,15 @@ def play_tic_tac_toe():
 
                 display_board(board, game_number, player_score, computer_score)
                 choose_square(board, current_player)
-                
+
                 if someone_won_game(board) or board_full(board):
                     break
-                
+
                 current_player = alternate_player(current_player)
 
-            player_score, computer_score = increment_score(board, player_score, computer_score)
+            player_score, computer_score = increment_score(board,
+                                                           player_score,
+                                                           computer_score)
 
             display_board(board, game_number, player_score, computer_score)
 
@@ -282,7 +268,7 @@ def play_tic_tac_toe():
                 break
 
             while True:
-                if next_game():
+                if advance_to_next_game():
                     break
 
             game_number += 1
@@ -291,9 +277,11 @@ def play_tic_tac_toe():
         display_match_outcome(player_score, computer_score)
 
         play_again_choice = play_again()
+        if play_again_choice == 'y':
+            continue
         if play_again_choice == 'n':
             break
-        
+
     prompt("Thanks for playing!")
 
 play_tic_tac_toe()
