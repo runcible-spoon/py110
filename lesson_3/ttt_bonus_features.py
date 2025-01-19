@@ -47,9 +47,11 @@ def set_turn_order(choice):
 def prompt(message):
     print(f"==> {message}")
 
+def clear_screen():
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 def display_board(board, game_number, player_score, computer_score):
-    os.system('cls' if os.name == 'nt' else 'clear')
+    clear_screen()
 
     prompt(f"You are {HUMAN_MARKER}. Computer is {COMPUTER_MARKER}.")
     prompt(f"Game number {game_number}. First to 5 points wins the match.")
@@ -231,6 +233,7 @@ def play_again():
 # MAIN
 
 def play_tic_tac_toe():
+    clear_screen()
 
     # PLAY AGAIN LOOP
     while True:
