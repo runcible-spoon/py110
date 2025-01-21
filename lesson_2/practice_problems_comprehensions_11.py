@@ -1,10 +1,10 @@
 '''
-The following dictionary has list values that contains strings. Write some code to create a list of 
+The following dictionary has list values that contains strings. Write some code to create a list of
 every vowel (a, e, i, o, u) that appears in the contained strings, then print it.
 
 Start by trying to write this using nested loops.
 
-Extra Challenge: Once your nested loop code works, try to refactor the code so it uses a single list 
+Extra Challenge: Once your nested loop code works, try to refactor the code so it uses a single list
 comprehension. (You can print the resulting list outside of the comprehension.)
 '''
 

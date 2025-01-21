@@ -1,5 +1,5 @@
 '''
-Given the following data structure, write some code to return a list that contains the colors of the 
+Given the following data structure, write some code to return a list that contains the colors of the
 fruits and the sizes of the vegetables. The sizes should be uppercase, and the colors should be capitalized.
 '''
 
@@ -29,8 +29,7 @@ dict1 = {
 expected = [["Red", "Green"], "MEDIUM", ["Orange"], "LARGE"]
 
 
-
-
+# first attempt
 def get_descriptions(dictionary):
     new_list = []
 
@@ -42,3 +41,13 @@ def get_descriptions(dictionary):
     return new_list
 
 print(get_descriptions(dict1))
+
+
+# second attempt (studying)
+
+def get_attributes(dictionary):
+    return [ color.capitalize() for color in dictionary['colors'] ] if dictionary['type'] == 'fruit' else dictionary['size'].upper()
+
+lst = [ get_attributes(value) for value in dict1.values() ]
+
+print(lst == expected)

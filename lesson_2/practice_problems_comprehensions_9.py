@@ -1,9 +1,7 @@
 '''
-Given the following data structure, write some code to return a list that 
+Given the following data structure, write some code to return a list that
 contains only the dictionaries where all the numbers are even.
 '''
-
-import copy
 
 
 
@@ -14,6 +12,9 @@ lst = [
 ]
 
 expected = [{'e': [8], 'f': [6, 10]}]
+
+# first attempt
+import copy
 
 new_list = []
 
@@ -29,9 +30,19 @@ for dictionary in lst:
 print(new_list)
 
 
-'''new_list = [ dictionary for dictionary in lst 
-                        for sublist in dictionary.values() 
+new_list = [ dictionary for dictionary in lst
+                        for sublist in dictionary.values()
                         if all(are_even(sublist)) ]
 
 print(new_list)
-'''
+
+
+# second attempt
+new_lst = [
+    dict for dict in lst
+    if all(
+        [ num % 2 == 0 for sblst in dict.values() for num in sblst ]
+     )
+ ]
+
+print(new_lst == expected)
