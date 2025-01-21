@@ -276,10 +276,10 @@ def play_again():
 
 # MAIN
 def play_tic_tac_toe():
-    clear_screen()
 
     # PLAY AGAIN LOOP
     while True:
+        clear_screen()
 
         first_player = set_turn_order(TURN_ORDER)
         player_score = 0
