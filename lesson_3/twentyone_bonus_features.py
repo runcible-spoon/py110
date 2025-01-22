@@ -19,9 +19,9 @@ STARTING_HAND = 2
 DEALER_CUTOFF = 17
 
 # SCORE CONSTANTS
-TO_WIN_GAME = 21
+WINS_GAME = 21
 GAME_POINT = 1
-TO_WIN_MATCH = 3
+WINS_MATCH = 3
 
 # DECKBUILDING, DEALING
 
@@ -44,11 +44,17 @@ def prompt(message):
 def center_card_info(info):
     return info.center(CARD_WIDTH, ' ')
 
-def short_pause():
+def pause():
     time.sleep(2)
 
-def longer_pause():
-    time.sleep(3)
+def advance():
+    prompt("Press any key to continue.")
+    advance_input = input().lower()
+    while not advance_input:
+        prompt("Press any key to continue.")
+        advance_input = input().lower()
+
+    return advance_input
 
 # CARD GENERATION
 
@@ -78,25 +84,25 @@ def display_hole_card():
 
 # DISPLAY TURNS
 
-def display_player_turn(player_hand, player_total, dealer_hand):
+def display_player_turn(stats):
     prompt("Your hand:")
-    display_full_hand(player_hand)
+    display_full_hand(stats['player_hand'])
 
     prompt("Dealer's hand:")
-    display_first_dealer_card(dealer_hand)
+    display_first_dealer_card(stats['dealer_hand'])
     display_hole_card()
 
-    prompt(f"Your total: {player_total}")
+    prompt(f"Your total: {stats['player_total']}")
 
-def display_dealer_turn(player_hand, player_total, dealer_hand, dealer_total):
+def display_dealer_turn(stats):
     prompt("Your hand:")
-    display_full_hand(player_hand)
+    display_full_hand(stats['player_hand'])
 
     prompt("Dealer's hand:")
-    display_full_hand(dealer_hand)
+    display_full_hand(stats['dealer_hand'])
 
-    prompt(f"Your total: {player_total}")
-    prompt(f"Dealer's total: {dealer_total}")
+    prompt(f"Your total: {stats['player_total']}")
+    prompt(f"Dealer's total: {stats['dealer_total']}")
 
 # CALCULATIONS
 
@@ -113,93 +119,216 @@ def total(hand):
             sum_value += int(value)
 
     aces = values.count('Ace')
-    while sum_value > TO_WIN_GAME and aces:
+    while sum_value > WINS_GAME and aces:
         sum_value -= FACE_VALUE
         aces -= ACE_LOW_VALUE
 
     return sum_value
 
 def blackjack(hand, hand_total):
-    return hand_total == TO_WIN_GAME and len(hand) == STARTING_HAND
+    return hand_total == WINS_GAME and len(hand) == STARTING_HAND
 
 def twenty_one(hand_total):
-    return hand_total == TO_WIN_GAME
+    return hand_total == WINS_GAME
 
 def busted(hand_total):
-    return hand_total > TO_WIN_GAME
+    return hand_total > WINS_GAME
 
 # RESULTS
 
-def calculate_game_result(player_hand,
-                          player_total,
-                          dealer_hand,
-                          dealer_total):
+def calculate_game_result(stats):
     game_outcomes = {
 
     'DEALER_WINS_GAME': {
-        busted(player_total),
-        blackjack(dealer_hand, dealer_total) and not
-            blackjack(player_hand, player_total),
-        (dealer_total > player_total) and not busted(dealer_total)},
+        # player busted
+        busted(stats['player_total']),
+
+        # dealer got blackjack, player didn't
+        blackjack(stats['dealer_hand'], stats['dealer_total']) and not blackjack(stats['player_hand'], stats['player_total']),
+
+        # dealer's hand larger than player's and dealer didn't bust
+        (stats['dealer_total'] > stats['player_total']) and not busted(stats['dealer_total'])},
 
     'PLAYER_WINS_GAME': {
-        busted(dealer_total),
-        blackjack(player_hand, player_total) and not
-            blackjack(dealer_hand, dealer_total),
-        (player_total > dealer_total) and not busted(player_total)}
+        # dealer busted
+        busted(stats['dealer_total']),
+
+        # player got blackjack, dealer didn't
+        blackjack(stats['player_hand'], stats['player_total']) and not blackjack(stats['dealer_hand'], stats['dealer_total']),
+
+        # player's hand larger than dealer's and player didn't bust
+        (stats['player_total'] > stats['dealer_total']) and not busted(stats['player_total'])}
     }
 
     if any(game_outcomes['DEALER_WINS_GAME']):
         return 'DEALER_WINS_GAME'
+
     if any(game_outcomes['PLAYER_WINS_GAME']):
         return 'PLAYER_WINS_GAME'
 
     return None
 
-def display_game_result(game_result, player_total, dealer_total):
-
+def display_game_result(game_result, stats):
     if not game_result:
         prompt("This game is a push! No winner."
-               f"Your hand was {player_total}.")
-        prompt(f"Dealer's hand was {dealer_total}.")
-    elif game_result == 'DEALER_WINS_GAME':
-        prompt(f"Dealer won this game with {dealer_total}.")
-        prompt(f"You lost with {player_total}.")
-    elif game_result == 'PLAYER_WINS_GAME':
-        prompt (f"You won this game with {player_total}.")
-        prompt(f"Dealer lost with {dealer_total}.")
+               f"Your hand was {stats['player_total']}.")
+        prompt(f"Dealer's hand was {stats['dealer_total']}.")
 
-def increment_score(result, player_score, computer_score):
+    elif game_result == 'DEALER_WINS_GAME':
+        prompt(f"Dealer won this game with {stats['dealer_total']}.")
+        prompt(f"You lost with {stats['player_total']}.")
+
+    elif game_result == 'PLAYER_WINS_GAME':
+        prompt (f"You won this game with {stats['player_total']}.")
+        prompt(f"Dealer lost with {stats['dealer_total']}.")
+
+def increment_score(result, stats):
     match result:
         case 'DEALER_WINS_GAME':
-            return player_score, computer_score + GAME_POINT
+            stats['dealer_score'] += GAME_POINT
+            return
         case 'PLAYER_WINS_GAME':
-            return player_score + GAME_POINT, computer_score
-        case _:
-            return player_score, computer_score
+            stats['player_score'] += GAME_POINT
+            return
 
-def display_score(player_score, dealer_score):
+    return
+
+def display_score(stats):
     prompt("============= SCORES =============")
-    prompt(f"Player score: {player_score} | Dealer score: {dealer_score}")
+    prompt(f"Player score: {stats['player_score']} | Dealer score: {stats['dealer_score']}")
     print('')
 
-def detect_best_of_five(player_score, dealer_score):
-    if dealer_score == TO_WIN_MATCH:
+def detect_best_of_five(stats):
+    if stats['dealer_score'] == WINS_MATCH:
         return 'DEALER_WINS_MATCH'
-    if player_score == TO_WIN_MATCH:
+    if stats['player_score'] == WINS_MATCH:
         return 'PLAYER_WINS_MATCH'
 
     return None
 
-def display_best_of_five_result(player_score, dealer_score):
-    result = detect_best_of_five(player_score, dealer_score)
+def display_best_of_five_result(stats):
+    result = detect_best_of_five(stats)
+
     match result:
         case 'DEALER_WINS_MATCH':
-            prompt(f"Dealer wins with {dealer_score} out of {TO_WIN_MATCH}!")
+            prompt(f"Dealer wins with {stats['dealer_score']} out of {WINS_MATCH}!")
             prompt("Better luck next time.")
         case 'PLAYER_WINS_MATCH':
-            prompt(f"You win with {player_score} out of {TO_WIN_MATCH}!")
+            prompt(f"You win with {stats['player_score']} out of {WINS_MATCH}!")
             prompt("Lady Luck smiles upon you tonight!")
+
+# GAME LOOP
+
+def play_game(stats):
+    while not detect_best_of_five(stats):
+
+        stats['deck'] = initialize_deck()
+
+        stats['dealer_hand'] = [ deal(stats['deck']) for _ in range(STARTING_HAND) ]
+        stats['dealer_total'] = total(stats['dealer_hand'])
+
+        stats['player_hand'] = [ deal(stats['deck']) for _ in range(STARTING_HAND) ]
+        stats['player_total'] = total(stats['player_hand'])
+
+        display_score(stats)
+        display_player_turn(stats)
+
+        # PLAYER TURN
+        player_busted = player_turn(stats, player_busted=None)
+
+        if player_busted:
+            continue
+
+        # DEALER TURN
+        dealer_turn(stats)
+
+    return
+
+def player_turn(stats, player_busted=None):
+
+    if twenty_one(stats['player_total']):
+        prompt("You got a natural 21! Blackjack!")
+
+    while True:
+        prompt("(H)it or (S)tay?")
+        player_choice = input().lower()
+        if player_choice not in ['h', 's']:
+            prompt("Enter 'h' to hit and receive another card "
+                "or 's' to stay and end your turn.")
+            continue
+
+        if player_choice == 'h':
+            stats['player_hand'].append(deal(stats['deck']))
+            stats['player_total'] = total(stats['player_hand'])
+
+            clear_screen()
+            display_score(stats)
+            display_player_turn(stats)
+
+            if twenty_one(stats['player_total']):
+                prompt("Twenty-one!")
+
+        if player_choice == 's' or busted(stats['player_total']):
+            break
+
+    if busted(stats['player_total']):
+        prompt("You busted....")
+        pause()
+
+        result = calculate_game_result(stats)
+        display_game_result(result, stats)
+        increment_score(result, stats)
+
+        advance()
+        clear_screen()
+        player_busted = True
+        return player_busted
+
+    prompt("You chose to stay.")
+    return
+
+def dealer_turn(stats):
+    prompt("Dealer reveals hole card...")
+    pause()
+
+    clear_screen()
+    display_score(stats)
+    display_dealer_turn(stats)
+
+    while stats['dealer_total'] < DEALER_CUTOFF:
+        prompt("Dealer hits.")
+        pause()
+
+        stats['dealer_hand'].append(deal(stats['deck']))
+        stats['dealer_total'] = total(stats['dealer_hand'])
+
+        clear_screen()
+        display_score(stats)
+        display_dealer_turn(stats)
+
+    if busted(stats['dealer_total']):
+        prompt("Dealer busted!")
+        pause()
+
+        result = calculate_game_result(stats)
+        display_game_result(result, stats)
+        increment_score(result, stats)
+
+        advance()
+        clear_screen()
+        return
+
+    prompt("Dealer chose to stay.")
+    pause()
+
+    result = calculate_game_result(stats)
+    display_game_result(result, stats)
+
+    increment_score(result, stats)
+    advance()
+    clear_screen()
+
+    return
 
 # PLAY AGAIN?
 
@@ -218,8 +347,20 @@ def play_twentyone():
 
     # PLAY AGAIN LOOP
     while True:
-        player_score = 0
-        dealer_score = 0
+        stats = {
+            'player_score':     0,
+            'dealer_score':     0,
+
+            'deck':             None,
+
+            'dealer_hand':      None,
+            'dealer_total':     None,
+
+            'player_hand':      None,
+            'player_total':     None,
+        }
+
+        print(stats)
 
         clear_screen()
         prompt("Welcome to Twenty-One!")
@@ -227,124 +368,9 @@ def play_twentyone():
         print('')
 
         # GAME LOOP
-        while not detect_best_of_five(player_score, dealer_score):
-            deck = initialize_deck()
+        play_game(stats)
 
-            dealer_hand = [ deal(deck) for _ in range(STARTING_HAND) ]
-            dealer_total = total(dealer_hand)
-
-            player_hand = [ deal(deck) for _ in range(STARTING_HAND) ]
-            player_total = total(player_hand)
-
-            display_score(player_score, dealer_score)
-            display_player_turn(player_hand, player_total, dealer_hand)
-
-            if twenty_one(player_total):
-                prompt("You got a natural 21! Blackjack!")
-
-            # PLAYER TURN
-            while True:
-                prompt("(H)it or (S)tay?")
-                player_choice = input().lower()
-                if player_choice not in ['h', 's']:
-                    prompt("Enter 'h' to hit and receive another card "
-                           "or 's' to stay and end your turn.")
-                    continue
-
-                if player_choice == 'h':
-                    player_hand.append(deal(deck))
-                    player_total = total(player_hand)
-
-                    clear_screen()
-                    display_score(player_score, dealer_score)
-                    display_player_turn(player_hand, player_total, dealer_hand)
-
-                    if twenty_one(player_total):
-                        prompt("Twenty-one!")
-
-                if player_choice == 's' or busted(player_total):
-                    break
-
-            if busted(player_total):
-                prompt("You busted....")
-                short_pause()
-
-                result = calculate_game_result(player_hand,
-                                               player_total,
-                                               dealer_hand,
-                                               dealer_total)
-                display_game_result(result, player_total, dealer_total)
-                player_score, dealer_score = increment_score(result,
-                                                            player_score,
-                                                            dealer_score)
-
-                longer_pause()
-
-                clear_screen()
-                continue
-
-            prompt("You chose to stay.")
-            short_pause()
-
-            # DEALER TURN
-            prompt("Dealer reveals hole card...")
-            short_pause()
-
-            clear_screen()
-            display_score(player_score, dealer_score)
-            display_dealer_turn(player_hand,
-                                player_total,
-                                dealer_hand,
-                                dealer_total)
-
-            while dealer_total < DEALER_CUTOFF:
-                prompt("Dealer hits.")
-                short_pause()
-
-                dealer_hand.append(deal(deck))
-                dealer_total = total(dealer_hand)
-
-                clear_screen()
-                display_score(player_score, dealer_score)
-                display_dealer_turn(player_hand,
-                                    player_total,
-                                    dealer_hand,
-                                    dealer_total)
-
-            if busted(dealer_total):
-                prompt("Dealer busted!")
-                short_pause()
-
-                result = calculate_game_result(player_hand,
-                                            player_total,
-                                            dealer_hand,
-                                            dealer_total)
-                display_game_result(result, player_total, dealer_total)
-                player_score, dealer_score = increment_score(result,
-                                                            player_score,
-                                                            dealer_score)
-
-                longer_pause()
-
-                clear_screen()
-                continue
-
-            prompt("Dealer chose to stay.")
-            short_pause()
-
-            result = calculate_game_result(player_hand,
-                                        player_total,
-                                        dealer_hand,
-                                        dealer_total)
-            display_game_result(result, player_total, dealer_total)
-
-            player_score, dealer_score = increment_score(result,
-                                                        player_score,
-                                                        dealer_score)
-            longer_pause()
-            clear_screen()
-
-        display_best_of_five_result(player_score, dealer_score)
+        display_best_of_five_result(stats)
 
         play_again_input = play_again()
         match play_again_input:
